@@ -9,7 +9,13 @@ class ListUser
     return 0.0 if issue.estimated_hours.nil?
     return 0.0 if issue.children.any?
 
-    return issue.estimated_hours*((100.0 - issue.done_ratio)/100.0)
+    spent = issue.spent_hours
+
+    if spent > 0
+      (issue.estimated_hours - spent).abs
+    else
+      issue.estimated_hours*((100.0 - issue.done_ratio)/100.0)
+    end
   end
 
   # Returns all issues that fulfill the following conditions:
