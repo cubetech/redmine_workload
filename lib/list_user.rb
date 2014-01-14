@@ -71,15 +71,27 @@ class ListUser
 
     result = Hash::new
 
+    # Get issue start and end time - fallback to version if they are not otherwise set.
+    version = issue.fixed_version
+    if version
+      #start_date = issue.start_date || version.start_date
+      # This is zerista specific algorithm
+      start_date = issue.start_date || version.effective_date - 4.days
+      due_date = issue.due_date || version.effective_date
+    else
+      start_date = issue.start_date
+      due_date = issue.due_date
+    end
+
     # If issue is overdue and the remaining time may be estimated, all
     # remaining hours are put on first working day.
-    if !issue.due_date.nil? && (issue.due_date < today) then
+    if !due_date.nil? && (due_date < today) then
 
       # Initialize all days to inactive
       timeSpan.each do |day|
 
         # A day is active if it is after the issue start and before the issue due date
-        isActive = (day <= issue.due_date && (issue.start_date.nil? || issue.start_date >= day))
+        isActive = (day <= due_date && (start_date.nil? || start_date >= day))
 
         result[day] = {
           :hours => 0.0,
@@ -96,15 +108,15 @@ class ListUser
     # If the hours needed for an issue can not be estimated, set all days
     # outside the issues time to inactive, and all days within the issues time
     # to active but not estimated.
-    elsif issue.due_date.nil? || issue.start_date.nil? then
+    elsif due_date.nil? || start_date.nil? then
       timeSpan.each do |day|
 
         isHoliday = !workingDays.include?(day)
 
         # Check: Is the issue is active on day?
-        if ( (!issue.due_date.nil?)   && (day <= issue.due_date)  ) ||
-           ( (!issue.start_date.nil?) && (day >= issue.start_date)) ||
-           (   issue.start_date.nil?  &&  issue.due_date.nil?     ) then
+        if ( (!due_date.nil?)   && (day <= due_date)  ) ||
+           ( (!start_date.nil?) && (day >= start_date)) ||
+           (   start_date.nil?  &&  due_date.nil?     ) then
 
           result[day] = {
             :hours => 0.0,                     # No estimate possible, use zero
@@ -129,14 +141,14 @@ class ListUser
     # The issue has start and end date
     else
       # Number of remaining working days for the issue:
-      numberOfWorkdaysForIssue = DateTools::getRealDistanceInDays([today, issue.start_date].max..issue.due_date)
+      numberOfWorkdaysForIssue = DateTools::getRealDistanceInDays([today, start_date].max..due_date)
       hoursPerWorkday = hoursRemaining/numberOfWorkdaysForIssue.to_f
 
       timeSpan.each do |day|
 
         isHoliday = !workingDays.include?(day)
 
-        if (day >= issue.start_date) && (day <= issue.due_date) then
+        if (day >= start_date) && (day <= due_date) then
 
           if (day >= today) then
             result[day] = {
