@@ -31,15 +31,18 @@ class WorkLoadController < ApplicationController
   end
 
 
-
-private
+  private
 
   def initalizeUsers(workloadParameters)
 
     # Get list of users that are allowed to be displayed by this user
     @usersAllowedToDisplay = ListUser::getUsersAllowedToDisplay()
 
-    userIds = workloadParameters[:users].kind_of?(Array) ? workloadParameters[:users] : []
+    if  workloadParameters[:group] &&  !workloadParameters[:group].empty?
+      userIds = Group.find(workloadParameters[:group]).users.collect { |user| user.id}
+    else
+      userIds = workloadParameters[:users].kind_of?(Array) ? workloadParameters[:users] : []
+    end
     userIds.map! { |x| x.to_i }
 
     # Get list of users that should be displayed.

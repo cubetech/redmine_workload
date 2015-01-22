@@ -17,6 +17,10 @@
       <%= text_field_tag :workload_start_date, @today, :name => 'workload[start_date]', :size => 10 %>
       <%= calendar_for('workload_start_date') %>
     </div>
+      <div class="groups">
+        <%= label_tag :workload_groups, l(:workload_show_filter_group) %>
+        <%= select_tag :workload_groups, group_options, :name => 'workload[group]', :multiple => false, :size => 1,:include_blank => true %>
+      </div>
     <div class="users">
       <%= label_tag :workload_users, l(:workload_show_filter_user) %>
       <%= select_tag :workload_users, get_option_tags_for_userselection(@usersAllowedToDisplay, @usersToDisplay), :name => 'workload[users][]', :multiple => true %>
@@ -24,5 +28,5 @@
     <%= link_to_function l(:button_apply), 'jQuery("#filter_form").submit()', :class => 'apply icon icon-checked' %>
   </fieldset>
 <%
-  end
+   end
 %>
